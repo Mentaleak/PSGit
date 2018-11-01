@@ -1,15 +1,37 @@
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+#public
 function New-GitRepo(){
-    param(
-        [Parameter(mandatory=$true)][string]$token,
-        [Parameter(mandatory=$true)][string]$name
+   param(
+     #Example: C:\Scripts\
+     [Parameter(mandatory=$true)][string]$name
     )
-    # https://github.com/settings/tokens/new
-# curl https://api.github.com/user/repos?access_token=$token -d '{"name":"$name"}'
+
+$postparams= "{`"name`":`"$($name)`"}"
+
+return Invoke-RestMethod -uri "https://api.github.com/user/repos" -Headers (Test-GitAuth) -Method POST -Body $postparams
+}
+
+#public
+function get-GitRepos(){
+    return Invoke-RestMethod -uri "https://api.github.com/user/repos" -Headers (Test-GitAuth)
+}
+
+#private 
+function Test-GitAuth(){
+
+if($Global:GitAuth){
+return $Global:GitAuth
+
+}
+Write-Host "Please run Connect-Github first"
+breakall
 
 }
 
-$crd
-function New-GitToken() {
+
+#private
+function Get-GitAuthHeader(){
      param(
      [string]$user,
      [string]$pass,
@@ -17,45 +39,40 @@ function New-GitToken() {
      )
      if($cred)
      {
-
+        $user=$cred.UserName
+        $basicAuthValue = "Basic $([System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$($user):$([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($($cred.Password))))")))"
      }
      elseif($user -and $pass)
      {
-
-
+     $pair = "${user}:${pass}"
+     $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
+     $base64 = [System.Convert]::ToBase64String($bytes)
+     $basicAuthValue = "Basic $base64"
      }
      else{
-     throw [System.IO.FileNotFoundException] "Please Provide either (-cred) or (-user and -pass)"
+     throw [System.InvalidOperationException] "Please Provide either (-cred) or (-user and -pass)"
      }
-
-
-$pair = "${user}:${pass}"
-$bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
-$base64 = [System.Convert]::ToBase64String($bytes)
-$basicAuthValue = "Basic $base64"
-#$headers = @{ Authorization = $basicAuthValue}
-$postparams = @{scopes = "repo";note = "ZPSMODULE" }
-#Invoke-WebRequest -uri "https://api.github.com/authorizations" -Headers $headers -Method POST -body $postparams
-return $basicAuthValue
-#curl -u '$username'  -d '{"scopes":["repo"],"note":"ZPSMODULE"}' https://api.github.com/authorizations
-#Curl -u does not exsist in powershell we will have to find a way to do this with invoke-webrequest
+     $headers = @{ Authorization = $basicAuthValue}
+     return $headers
 }
 
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$gitToken=New-GitToken
-$headers = @{ Authorization = $gitToken}
-$postparams = @{scopes = "repo";note = "ZPSMODULE" }
-$connection = Invoke-WebRequest -Uri https://api.github.com -Headers $headers
-
-
-
-
+function Connect-github(){
+    $tmpheader = Get-GitAuthHeader -cred (get-credential)
+     try{$userdata=Invoke-RestMethod -uri "https://api.github.com/user" -Headers $tmpheader}
+     Catch{
+     throw [System.UnauthorizedAccessException] "$((($_.ErrorDetails.Message) | ConvertFrom-Json).message)"
+     breakall
+     }
+     Write-Host "Connection Successful"
+     Write-Host "Login: $($userdata.Login)"
+     Write-Host "URL: $($userdata.html_url)"
+     $global:GitAuth = $tmpheader
+}
 
 # Binds folder to github
 # requires git
-function Get-GitRepo()
-{
+function Get-GitRepo(){
      param(
      #Example: C:\Scripts\
      [Parameter(mandatory=$true)][string]$LocalPath,
@@ -73,84 +90,105 @@ function Get-GitRepo()
 #Example:
 #Get-GitRepo -LocalPath "C:\Scripts\" -RemoteRepo "https://github.com/Mentaleak/PSGit"
 
-function Push-GitCommit()
-{
+function Add-GitAutoCommitPush(){
      param(
      #Example: C:\Scripts\
-     [string]$ProjectPath=((Get-Item -Path ".\").FullName),
-     [string]$message=""
+     [string]$ProjectPath=((Get-Item -Path ".\").FullName)
      )
 
-    if(!(Test-Path $ProjectPath))
-    {
-    New-Item -ItemType Directory -Force -Path $ProjectPath
-    }
-    if($message -eq ""){
-        $message=get-gitComment
-    }
-    git add *
-    git commit -m $comment
-    git push
-}
 
-#private-
-function get-gitMessage(){
- param(
-     #Example: C:\Scripts\
-     [Parameter(mandatory=$true)][string]$ProjectPath
-     )
-
-    if(!(Test-Path $ProjectPath))
-    {
-    New-Item -ItemType Directory -Force -Path $ProjectPath
-    }
-
-git add -N *
-git diff
-}
-
-
-$ta=$test.split("`n")
-
-$message=""
-$lastindex = 0
-foreach($diff in $ta.where{$_.Contains("diff --git")})
-{
-  if( $ta[$ta.IndexOf($diff) + 1].contains("new file")){
-    $comment+=" Added "+ $diff.Substring($diff.IndexOf("b/")+2,($diff.Length - $diff.IndexOf("b/")-2))
-
-  }else {
-  
-   $comment+=" Modified "+ $diff.Substring($diff.IndexOf("b/")+2,($diff.Length - $diff.IndexOf("b/")-2))
-  
-  }
-
-
-}
-$comment
-
-
-
-
-
-
-
-
-
-
-
-
-{
-    $diffs=@()
-    $indexlist+= $ta.IndexOf($diff)
-    $diffs = @($ta[$lastindex..$($ta.IndexOf($diff))])
-    if($ta.IndexOf($diff) -ne 0)
-    {
-
-    $mod=New-Object -TypeName psobject -Property @{
+        if(!(Test-Path $ProjectPath))
+        {
+         New-Item -ItemType Directory -Force -Path $ProjectPath
+        }
         
+
+     if(test-GitLocal -ProjectPath $ProjectPath){
+
+      if(test-GitRemote -ProjectPath $ProjectPath){
+
+            #get diff list, including new files
+            git add -N *
+            $difflist = (git diff).split("`n")
+
+
+            #look at each file add and commit file with changes
+                foreach($diff in $difflist.where{$_.Contains("diff --git")})
+                {
+                    $fileName=$diff.Substring($diff.IndexOf("b/")+2,($diff.Length - $diff.IndexOf("b/")-2))
+                    $diffdata = (git diff $fileName).split("`n")
+                    $functionlist = get-functions $fileName
+    
+                    $mods = $diffdata | where {($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
+                    $ChangedFunctions=[string]@()
+                    foreach($mod in $mods){ 
+                        foreach($fn in $functionlist){
+                            if($fn.definition.contains($mod.Substring(1,$mod.length -1 ))){
+                                $ChangedFunctions=+$($fn.name)
+                            }
+                        }
+                    }
+                    $ChangedFunctions=$ChangedFunctions |sort | get-unique
+
+                  if( $difflist[$difflist.IndexOf($diff) + 1].contains("new file")){
+                     $Message=" Added "+ $file
+     
+                  }else {
+                     $Message=" Modified "+ $file
+  
+                  }
+                  $description= "Changed functions: `n" + $ChangedFunctions -join "`n"
+                  git add $file
+                  git commit -m "$Message" -m "$description"
+                }
+            git push
+            }
     }
-        $diffs = @($ta[$lastindex..$($ta.IndexOf($diff))])
-    }
-    $lastindex = $ta.IndexOf($diff)
+}
+
+#private
+function test-GitLocal(){
+    param(
+         #Example: C:\Scripts\
+         [string]$ProjectPath=((Get-Item -Path ".\").FullName)
+         )
+        if((Test-Path "$($ProjectPath)\.git"))
+        {
+        return $true
+        }
+        else
+        {
+        throw [System.IO.FileNotFoundException] "NO .git Folder present"
+        return $false
+        }
+
+}
+
+#private
+function test-GitRemote(){
+    param(
+             #Example: C:\Scripts\
+             [string]$ProjectPath=((Get-Item -Path ".\").FullName)
+             )
+    $repos = get-GitRepos
+    $config = (get-content "$($ProjectPath)\.git\config").split("`n")
+    $urls = ($config | Where-Object {$_ -like "*url = *"})
+    $giturl = ($urls | Where-Object {$_ -like "*github*"}).split("=").Trim()
+    $repos.html_url
+
+
+}
+   
+#returns functions from file
+function Get-functions(){
+    param(
+       [Parameter(mandatory=$true)][string]$filePath
+       )
+        $file=get-childitem $filePath
+        $oldarray= Get-ChildItem function:\
+        import-module $($file.FullName)
+        $newarray= Get-ChildItem function:\
+        $functions=($newarray | where {$oldarray -notcontains $_})
+        Remove-Module $($file.BaseName)
+        return $functions
 }
