@@ -141,7 +141,7 @@ function Add-GitAutoCommitPush(){
                   git add $fileName
                   git commit -m "$Message" -m "$description"
                 }
-            try {git push} catch { return $_ }
+            git push 2> $null
 
             }
     }
