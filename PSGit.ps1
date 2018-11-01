@@ -62,12 +62,13 @@ function New-RepoConnection()
      #Example: https://github.com/{USERNAME}/{REPO}
      [Parameter(mandatory=$true)][string]$RemoteRepo
      )
-git init
-git add .
-git commit -m "First commit"
-git remote add origin $RemoteRepo
-git remote -v
-git pull origin master
+    if(!(Test-Path $LocalPath))
+    {
+    New-Item -ItemType Directory -Force -Path $LocalPath
+    }
+    cd $LocalPath
+    git clone $RemoteRepo
 }
 
+New-RepoConnection -LocalPath "\\dutchess\support\Power Shell Scripts\Other" -RemoteRepo "https://github.com/Mentaleak/PSGit"
 
