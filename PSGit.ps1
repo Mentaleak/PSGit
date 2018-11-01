@@ -124,21 +124,21 @@ function Add-GitAutoCommitPush(){
                     foreach($mod in $mods){ 
                         foreach($fn in $functionlist){
                             if($fn.definition.contains($mod.Substring(1,$mod.length -1 ))){
-                                $ChangedFunctions=+ "$($fn.name)"
+                                $ChangedFunctions+= "$($fn.name)"
                             }
                         }
                     }
                     $ChangedFunctions=$ChangedFunctions |sort | get-unique
 
                   if( $difflist[$difflist.IndexOf($diff) + 1].contains("new file")){
-                     $Message=" Added "+ $file
+                     $Message=" Added "+ $fileName
      
                   }else {
-                     $Message=" Modified "+ $file
+                     $Message=" Modified "+ $fileName
   
                   }
                   $description= "Changed functions: `n" + $ChangedFunctions -join "`n"
-                  git add $file
+                  git add $fileName
                   git commit -m "$Message" -m "$description"
                 }
             git push
