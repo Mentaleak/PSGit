@@ -54,10 +54,10 @@ $connection = Invoke-WebRequest -Uri https://api.github.com -Headers $headers
 
 # Binds folder to github
 # requires git
-function New-RepoConnection()
+function Get-GitRepo()
 {
      param(
-     #Example: C:\Scripts\project1
+     #Example: C:\Scripts\
      [Parameter(mandatory=$true)][string]$LocalPath,
      #Example: https://github.com/{USERNAME}/{REPO}
      [Parameter(mandatory=$true)][string]$RemoteRepo
@@ -70,5 +70,87 @@ function New-RepoConnection()
     git clone $RemoteRepo
 }
 
-New-RepoConnection -LocalPath "\\dutchess\support\Power Shell Scripts\Other" -RemoteRepo "https://github.com/Mentaleak/PSGit"
+#Example:
+#Get-GitRepo -LocalPath "C:\Scripts\" -RemoteRepo "https://github.com/Mentaleak/PSGit"
 
+function Push-GitCommit()
+{
+     param(
+     #Example: C:\Scripts\
+     [string]$ProjectPath=((Get-Item -Path ".\").FullName),
+     [string]$message=""
+     )
+
+    if(!(Test-Path $ProjectPath))
+    {
+    New-Item -ItemType Directory -Force -Path $ProjectPath
+    }
+    if($message -eq ""){
+        $message=get-gitComment
+    }
+    git add *
+    git commit -m $comment
+    git push
+}
+
+#private-
+function get-gitMessage(){
+ param(
+     #Example: C:\Scripts\
+     [Parameter(mandatory=$true)][string]$ProjectPath
+     )
+
+    if(!(Test-Path $ProjectPath))
+    {
+    New-Item -ItemType Directory -Force -Path $ProjectPath
+    }
+
+git add -N *
+git diff
+}
+
+
+$ta=$test.split("`n")
+
+$message=""
+$lastindex = 0
+foreach($diff in $ta.where{$_.Contains("diff --git")})
+{
+  if( $ta[$ta.IndexOf($diff) + 1].contains("new file")){
+    $comment+=" Added "+ $diff.Substring($diff.IndexOf("b/")+2,($diff.Length - $diff.IndexOf("b/")-2))
+
+  }else {
+  
+   $comment+=" Modified "+ $diff.Substring($diff.IndexOf("b/")+2,($diff.Length - $diff.IndexOf("b/")-2))
+  
+  }
+
+
+}
+$comment
+
+
+
+
+
+
+
+
+
+
+
+
+{
+    $diffs=@()
+    $indexlist+= $ta.IndexOf($diff)
+    $diffs = @($ta[$lastindex..$($ta.IndexOf($diff))])
+    if($ta.IndexOf($diff) -ne 0)
+    {
+
+    $mod=New-Object -TypeName psobject -Property @{
+        
+    }
+        $diffs = @($ta[$lastindex..$($ta.IndexOf($diff))])
+    }
+    $lastindex = $ta.IndexOf($diff)
+}
