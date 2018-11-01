@@ -137,7 +137,7 @@ function Add-GitAutoCommitPush(){
                      $Message=" Modified "+ $fileName
   
                   }
-                  $description= "Changed functions: `n" + $ChangedFunctions -join "`n"
+                  $description= "Changed functions: `n" + $ChangedFunctions -join ","
                   git add $fileName
                   git commit -m "$Message" -m "$description"
                 }
