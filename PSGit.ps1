@@ -25,7 +25,7 @@ return $Global:GitAuth
 
 }
 Write-Host "Please run Connect-Github first"
-breakall
+break all
 
 }
 
@@ -62,7 +62,7 @@ function Connect-github(){
      try{$userdata=Invoke-RestMethod -uri "https://api.github.com/user" -Headers $tmpheader}
      Catch{
      throw [System.UnauthorizedAccessException] "$((($_.ErrorDetails.Message) | ConvertFrom-Json).message)"
-     breakall
+     break all
      }
      Write-Host "Connection Successful"
      Write-Host "Login: $($userdata.Login)"
@@ -97,10 +97,10 @@ function Add-GitAutoCommitPush(){
      )
 
 
-        if(!(Test-Path $ProjectPath))
-        {
-         New-Item -ItemType Directory -Force -Path $ProjectPath
-        }
+      #  if(!(Test-Path $ProjectPath))
+       # {
+       #  New-Item -ItemType Directory -Force -Path $ProjectPath
+       # }
         
 
      if(test-GitLocal -ProjectPath $ProjectPath){
@@ -124,7 +124,7 @@ function Add-GitAutoCommitPush(){
                     foreach($mod in $mods){ 
                         foreach($fn in $functionlist){
                             if($fn.definition.contains($mod.Substring(1,$mod.length -1 ))){
-                                $ChangedFunctions=+$($fn.name)
+                                $ChangedFunctions=+ "$($fn.name)"
                             }
                         }
                     }
@@ -173,8 +173,16 @@ function test-GitRemote(){
     $repos = get-GitRepos
     $config = (get-content "$($ProjectPath)\.git\config").split("`n")
     $urls = ($config | Where-Object {$_ -like "*url = *"})
-    $giturl = ($urls | Where-Object {$_ -like "*github*"}).split("=").Trim()
-    $repos.html_url
+    $giturl = ($urls | Where-Object {$_ -like "*github*"}).split("=").Trim()[1].Replace(".git", "")
+    
+    
+    if($repos.html_url.Contains($giturl)){
+    return $true
+    
+    }
+    throw [System.UriFormatException] "The repo $($giturl) Does not exsist"
+    break all
+    
 
 
 }
