@@ -105,6 +105,7 @@ function Add-GitAutoCommitPush () {
 
       Set-Location $ProjectPath
       #get diff list, including new files
+
       $gitStatus = (git status).split("`n")
       git add -N *
       $difflist = (git diff)
