@@ -153,7 +153,7 @@ function Add-GitAutoCommitPush () {
           $DeletedFiles = ($gitStatus.where{ ($_.Contains("deleted:")) })
           if($deletedFiles)
           {
-          $DeletedFile=$DeletedFiles.split(":")[1].trim()
+          $DeletedFiles=$DeletedFiles.split(":")[1].trim()
           }
           foreach($deletedfile in $deletedfiles){
             Write-Host "$deletedfile" -ForegroundColor red
