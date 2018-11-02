@@ -103,6 +103,7 @@ function Add-GitAutoCommitPush () {
 
       Set-Location $ProjectPath
       #get diff list, including new files
+      $gitStatus=(git status).split("`n")
       git add -N *
       $difflist=(git diff)
       if($difflist){
@@ -149,7 +150,6 @@ function Add-GitAutoCommitPush () {
             git add $fileName
             git commit -m "$Message" -m "$Description"
           }
-          $gitStatus=(git status).split("`n")
           write-host $gitStatus
           $DeletedFiles = ($gitStatus.where{ ($_.Contains("deleted:")) })
           if($deletedFiles)
