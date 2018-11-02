@@ -149,8 +149,8 @@ function Add-GitAutoCommitPush () {
           if($fixes -ne $null)
           {
             $fixes = $fixes | sort | Get-Unique
-            $fixed =  $fixes -join " ; Fixed #"
-            $description += "`n Fixes: Fixed #$($fixed)"
+            $fixed =  $fixes -join " and resolves #"
+            $description += "`n This Commit Resolves #$($fixed)"
           }
           Write-Host "$fileName" -ForegroundColor Yellow
           Write-Host "$Message"
