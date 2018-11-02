@@ -132,17 +132,15 @@ function Add-GitAutoCommitPush () {
           $Message = " Modified " + $fileName
 
         }
-        [string]$functionstring = $ChangedFunctions -join "; "
-        write-host "fn= $functionstring "
-        $description = "Changed functions: `n $functionlist"
+        [string]$FunctionString = $ChangedFunctions -join "`n"
+        $Description = "Changed functions: `n $FunctionString"
         Write-Host "$fileName" -ForegroundColor Yellow
-        Write-Host "$message"
-        Write-Host "$description" -ForegroundColor Gray
+        Write-Host "$Message"
+        Write-Host "$Description" -ForegroundColor Gray
         git add $fileName
-        git commit -m "$Message" -m "$description"
+        git commit -m "$Message" -m "$Description"
       }
-      git push 2>$null
-      return $difflist
+      git push 2>$null 
     }
   }
 }
