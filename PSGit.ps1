@@ -134,8 +134,15 @@ function Add-GitAutoCommitPush () {
               $Message = " Modified " + $fileName
 
             }
+            if($ChangedFunctions -ne $null)
+            {
             $FunctionString = $ChangedFunctions -join "`n"
             $Description = "Changed functions: `n$($FunctionString)"
+            }
+            else
+            {
+            $description = "Content Modified"
+            }
             Write-Host "$fileName" -ForegroundColor Yellow
             Write-Host "$Message"
             Write-Host "$Description" -ForegroundColor Gray
@@ -198,18 +205,19 @@ function Get-functions () {
   )
   $file = Get-ChildItem $filePath
   $oldarray = Get-ChildItem function:\
-  $continue=$true
-  try {Import-Module $($file.FullName)}
-  catch {
-  $continue=$false
-  Write-Host "$($file.FullName) is not a Powershell File"
-  }
-  if($continue){
+  $acceptableExtensions=@(".dll",".ps1",".psm1",".psd1",".cdxml",".xaml")
+  if($acceptableExtensions.Contains($file[0].Extension)){
+    Import-Module $($file.FullName)
     $newarray = Get-ChildItem function:\
     $functions = ($newarray | Where-Object { $oldarray -notcontains $_ })
     Remove-Module $($file.BaseName)
     return $functions
   }
+  else{
+  Write-Host "$($file.FullName) is not a Powershell File"
+  return @()
+  }
+
 
 }
 
