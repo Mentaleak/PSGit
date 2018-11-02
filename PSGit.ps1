@@ -104,7 +104,7 @@ function Add-GitAutoCommitPush () {
 
     if (test-GitRemote -ProjectPath $ProjectPath) {
 
-      Set-Location -Path $ProjectPath
+      cd $ProjectPath
       #get diff list, including new files
       git add -N *
       $difflist = (git diff).split("`n")
