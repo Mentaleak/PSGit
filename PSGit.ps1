@@ -198,16 +198,19 @@ function Get-functions () {
   )
   $file = Get-ChildItem $filePath
   $oldarray = Get-ChildItem function:\
-  try {
-    Import-Module $($file.FullName)
+  $continue=$true
+  try {Import-Module $($file.FullName)}
+  catch {
+  $continue=$false
+  Write-Host "$($file.FullName) is not a Powershell File"
+  }
+  if($continue){
     $newarray = Get-ChildItem function:\
     $functions = ($newarray | Where-Object { $oldarray -notcontains $_ })
     Remove-Module $($file.BaseName)
     return $functions
   }
-  catch {
-    Write-Host "$($file.FullName) is not a Powershell File"
-  }
+
 }
 
 #Throws an Error
