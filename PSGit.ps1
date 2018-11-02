@@ -133,7 +133,7 @@ function Add-GitAutoCommitPush () {
 
         }
         $FunctionString = $ChangedFunctions -join "`n"
-        $Description = "Changed functions: `n $($FunctionString)"
+        $Description = "Changed functions: `n$($FunctionString)"
         Write-Host "$fileName" -ForegroundColor Yellow
         Write-Host "$Message"
         Write-Host "$Description" -ForegroundColor Gray
