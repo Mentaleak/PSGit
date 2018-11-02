@@ -136,6 +136,7 @@ function Add-GitAutoCommitPush () {
 					$Message = " Modified " + $fileName
 
 				}
+                $global:Cfn=$ChangedFunctions
 				$description = "Changed functions: `n" + $ChangedFunctions -join ","
                 write-host "$fileName" -ForegroundColor Yellow
                 write-host "$message"
