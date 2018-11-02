@@ -89,7 +89,6 @@ function Get-GitRepo () {
 
 #Example:
 #Get-GitRepo -LocalPath "C:\Scripts\" -RemoteRepo "https://github.com/Mentaleak/PSGit"
-
 function Add-GitAutoCommitPush () {
 	param(
 		#Example: C:\Scripts\
@@ -110,10 +109,10 @@ function Add-GitAutoCommitPush () {
 			#get diff list, including new files
 			git add -N *
 			$difflist = (git diff).split("`n")
-
+            write-host "$($difflist.Count) Differences Found"
 
 			#look at each file add and commit file with changes
-			foreach ($diff in $difflist.where{ $_.Contains("diff --git") })
+			foreach ($diff in $difflist.where{ ($_.Contains("diff --git")) -and !($_.Contains("(`"diff --git`")"))})
 			{
 				$fileName = $diff.Substring($diff.IndexOf("b/") + 2,($diff.Length - $diff.IndexOf("b/") - 2))
 				$diffdata = (git diff $fileName).split("`n")
@@ -138,6 +137,9 @@ function Add-GitAutoCommitPush () {
 
 				}
 				$description = "Changed functions: `n" + $ChangedFunctions -join ","
+                write-host "$fileName" -ForegroundColor Yellow
+                write-host "$message"
+                write-host "$description" -ForegroundColor Gray
 				git add $fileName
 				git commit -m "$Message" -m "$description"
 			}
@@ -183,9 +185,6 @@ function test-GitRemote () {
 	}
 	throw [System.UriFormatException]"The repo $($giturl) Does not exsist"
 	break all
-
-
-
 }
 
 #returns functions from file
