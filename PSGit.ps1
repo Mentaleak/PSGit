@@ -103,66 +103,66 @@ function Add-GitAutoCommitPush () {
 
       Set-Location $ProjectPath
       #get diff list, including new files
-      $gitStatus=(git status).split("`n")
+      $gitStatus = (git status).split("`n")
       git add -N *
-      $difflist=(git diff)
-      if($difflist){
-          $difflist = (git diff).split("`n")
-          Write-Host "$($difflist.Count) Differences Found"
+      $difflist = (git diff)
+      if ($difflist) {
+        $difflist = (git diff).split("`n")
+        Write-Host "$($difflist.Count) Differences Found"
 
-          #look at each file add and commit file with changes
-          foreach ($diff in $difflist.where{ ($_.Contains("diff --git")) -and !($_.Contains("(`"diff --git`")")) })
-          {
-            $fileName = $diff.Substring($diff.IndexOf("b/") + 2,($diff.Length - $diff.IndexOf("b/") - 2))
-            $diffdata = (git diff $fileName).split("`n")
-            $functionlist = Get-functions $fileName
+        #look at each file add and commit file with changes
+        foreach ($diff in $difflist.where{ ($_.Contains("diff --git")) -and !($_.Contains("(`"diff --git`")")) })
+        {
+          $fileName = $diff.Substring($diff.IndexOf("b/") + 2,($diff.Length - $diff.IndexOf("b/") - 2))
+          $diffdata = (git diff $fileName).split("`n")
+          $functionlist = Get-functions $fileName
 
-            $mods = $diffdata | Where-Object { ($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
-            $ChangedFunctions = @()
-            foreach ($mod in $mods) {
-              foreach ($fn in $functionlist) {
-                if ($fn.definition.Contains($mod.Substring(1,$mod.Length - 1))) {
-                  $ChangedFunctions += "$($fn.name)"
-                }
+          $mods = $diffdata | Where-Object { ($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
+          $ChangedFunctions = @()
+          foreach ($mod in $mods) {
+            foreach ($fn in $functionlist) {
+              if ($fn.definition.Contains($mod.Substring(1,$mod.Length - 1))) {
+                $ChangedFunctions += "$($fn.name)"
               }
             }
-            $ChangedFunctions = $ChangedFunctions | sort | Get-Unique
+          }
+          $ChangedFunctions = $ChangedFunctions | sort | Get-Unique
 
-                    if ($difflist[$difflist.IndexOf($diff) + 1].Contains("new file")) {
-          $Message = " Added " + $fileName
+          if ($difflist[$difflist.IndexOf($diff) + 1].Contains("new file")) {
+            $Message = " Added " + $fileName
 
-        } else {
-              $Message = " Modified " + $fileName
+          } else {
+            $Message = " Modified " + $fileName
 
-            }
-            if($ChangedFunctions -ne $null)
-            {
+          }
+          if ($ChangedFunctions -ne $null)
+          {
             $FunctionString = $ChangedFunctions -join "`n"
             $Description = "Changed functions: `n$($FunctionString)"
-            }
-            else
-            {
-            $description = "Content Modified"
-            }
-            Write-Host "$fileName" -ForegroundColor Yellow
-            Write-Host "$Message"
-            Write-Host "$Description" -ForegroundColor Gray
-            git add $fileName
-            git commit -m "$Message" -m "$Description"
           }
-          $DeletedFiles = ($gitStatus.where{ ($_.Contains("deleted:")) })
-          if($deletedFiles)
+          else
           {
-          $DeletedFiles=$DeletedFiles.split(":")[1].trim()
+            $description = "Content Modified"
           }
-          foreach($deletedfile in $deletedfiles){
-            Write-Host "$deletedfile" -ForegroundColor red
-            Write-Host "DELETED"
-          }
-          git push 2>$null 
+          Write-Host "$fileName" -ForegroundColor Yellow
+          Write-Host "$Message"
+          Write-Host "$Description" -ForegroundColor Gray
+          git add $fileName
+          git commit -m "$Message" -m "$Description"
         }
+        $DeletedFiles = ($gitStatus.where{ ($_.Contains("deleted:")) })
+        if ($deletedFiles)
+        {
+          $DeletedFiles = $DeletedFiles.split(":")[1].Trim()
+        }
+        foreach ($deletedfile in $deletedfiles) {
+          Write-Host "$deletedfile" -ForegroundColor red
+          Write-Host "DELETED"
+        }
+        git push 2>$null
+      }
 
-   }
+    }
   }
 }
 
@@ -209,17 +209,17 @@ function Get-functions () {
   )
   $file = Get-ChildItem $filePath
   $oldarray = Get-ChildItem function:\
-  $acceptableExtensions=@(".dll",".ps1",".psm1",".psd1",".cdxml",".xaml")
-  if($acceptableExtensions.Contains($file[0].Extension)){
+  $acceptableExtensions = @(".dll",".ps1",".psm1",".psd1",".cdxml",".xaml")
+  if ($acceptableExtensions.Contains($file[0].Extension)) {
     Import-Module $($file.FullName)
     $newarray = Get-ChildItem function:\
     $functions = ($newarray | Where-Object { $oldarray -notcontains $_ })
     Remove-Module $($file.BaseName)
     return $functions
   }
-  else{
-  Write-Host "$($file.FullName) is not a Powershell File"
-  return @()
+  else {
+    Write-Host "$($file.FullName) is not a Powershell File"
+    return @()
   }
 
 
