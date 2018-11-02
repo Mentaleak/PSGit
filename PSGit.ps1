@@ -104,44 +104,54 @@ function Add-GitAutoCommitPush () {
       Set-Location $ProjectPath
       #get diff list, including new files
       git add -N *
-      $difflist = (git diff).split("`n")
-      Write-Host "$($difflist.Count) Differences Found"
+      $difflist=(git diff)
+      if($difflist){
+          $difflist = (git diff).split("`n")
+          Write-Host "$($difflist.Count) Differences Found"
 
-      #look at each file add and commit file with changes
-      foreach ($diff in $difflist.where{ ($_.Contains("diff --git")) -and !($_.Contains("(`"diff --git`")")) })
-      {
-        $fileName = $diff.Substring($diff.IndexOf("b/") + 2,($diff.Length - $diff.IndexOf("b/") - 2))
-        $diffdata = (git diff $fileName).split("`n")
-        $functionlist = Get-functions $fileName
+          #look at each file add and commit file with changes
+          foreach ($diff in $difflist.where{ ($_.Contains("diff --git")) -and !($_.Contains("(`"diff --git`")")) })
+          {
+            $fileName = $diff.Substring($diff.IndexOf("b/") + 2,($diff.Length - $diff.IndexOf("b/") - 2))
+            $diffdata = (git diff $fileName).split("`n")
+            $functionlist = Get-functions $fileName
 
-        $mods = $diffdata | Where-Object { ($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
-        $ChangedFunctions = @()
-        foreach ($mod in $mods) {
-          foreach ($fn in $functionlist) {
-            if ($fn.definition.Contains($mod.Substring(1,$mod.Length - 1))) {
-              $ChangedFunctions += "$($fn.name)"
+            $mods = $diffdata | Where-Object { ($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
+            $ChangedFunctions = @()
+            foreach ($mod in $mods) {
+              foreach ($fn in $functionlist) {
+                if ($fn.definition.Contains($mod.Substring(1,$mod.Length - 1))) {
+                  $ChangedFunctions += "$($fn.name)"
+                }
+              }
             }
-          }
-        }
-        $ChangedFunctions = $ChangedFunctions | sort | Get-Unique
+            $ChangedFunctions = $ChangedFunctions | sort | Get-Unique
 
-        if ($difflist[$difflist.IndexOf($diff) + 1].Contains("new file")) {
+                    if ($difflist[$difflist.IndexOf($diff) + 1].Contains("new file")) {
           $Message = " Added " + $fileName
 
         } else {
-          $Message = " Modified " + $fileName
+              $Message = " Modified " + $fileName
 
+            }
+            $FunctionString = $ChangedFunctions -join "`n"
+            $Description = "Changed functions: `n$($FunctionString)"
+            Write-Host "$fileName" -ForegroundColor Yellow
+            Write-Host "$Message"
+            Write-Host "$Description" -ForegroundColor Gray
+            git add $fileName
+            git commit -m "$Message" -m "$Description"
+          }
+          $gitStatus=git status
+          $DeletedFiles =$gitStatus.where{ ($_.Contains("deleted:")) }.split(":")[1].trim()
+          foreach($deletedfile in $deletedfiles){
+            Write-Host "$fileName" -ForegroundColor red
+            Write-Host "DELETED"
+          }
+          git push 2>$null 
         }
-        $FunctionString = $ChangedFunctions -join "`n"
-        $Description = "Changed functions: `n$($FunctionString)"
-        Write-Host "$fileName" -ForegroundColor Yellow
-        Write-Host "$Message"
-        Write-Host "$Description" -ForegroundColor Gray
-        git add $fileName
-        git commit -m "$Message" -m "$Description"
-      }
-      git push 2>$null 
-    }
+
+   }
   }
 }
 
