@@ -95,7 +95,7 @@ function Get-GitRepo () {
 function Add-GitAutoCommitPush () {
   param(
     #Example: C:\Scripts\
-    [string]$ProjectPath = ((Get-Item -Path ".\").FullName)
+    [string]$ProjectPath = ((Get-ChildItem ($psISE.CurrentFile.FullPath)).Directory.FullName)
   )
 
   if (test-GitLocal -ProjectPath $ProjectPath) {
