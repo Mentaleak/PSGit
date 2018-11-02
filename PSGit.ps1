@@ -140,7 +140,7 @@ function Add-GitAutoCommitPush () {
         git commit -m "$Message" -m "$description"
       }
       git push 2>$null
-
+      return $difflist
     }
   }
 }
