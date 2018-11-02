@@ -150,7 +150,6 @@ function Add-GitAutoCommitPush () {
             git add $fileName
             git commit -m "$Message" -m "$Description"
           }
-          write-host $gitStatus
           $DeletedFiles = ($gitStatus.where{ ($_.Contains("deleted:")) })
           if($deletedFiles)
           {
