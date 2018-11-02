@@ -100,16 +100,11 @@ function Add-GitAutoCommitPush () {
   )
 
 
-  #  if(!(Test-Path $ProjectPath))
-  # {
-  #  New-Item -ItemType Directory -Force -Path $ProjectPath
-  # }
-
-
   if (test-GitLocal -ProjectPath $ProjectPath) {
 
     if (test-GitRemote -ProjectPath $ProjectPath) {
 
+      Set-Location -Path $ProjectPath
       #get diff list, including new files
       git add -N *
       $difflist = (git diff).split("`n")
@@ -198,11 +193,18 @@ function Get-functions () {
   )
   $file = Get-ChildItem $filePath
   $oldarray = Get-ChildItem function:\
-  Import-Module $($file.FullName)
-  $newarray = Get-ChildItem function:\
-  $functions = ($newarray | Where-Object { $oldarray -notcontains $_ })
-  Remove-Module $($file.BaseName)
-  return $functions
+  try{
+    Import-Module $($file.FullName)
+    $newarray = Get-ChildItem function:\
+    $functions = ($newarray | Where-Object { $oldarray -notcontains $_ })
+    Remove-Module $($file.BaseName)
+    return $functions
+  }
+  catch{
+    write-host "$($file.FullName) is not a Powershell File"
+  }
+  
+  
 }
 
 #Throws an Error
