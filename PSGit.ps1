@@ -142,8 +142,8 @@ function Add-GitAutoCommitPush () {
             git add $fileName
             git commit -m "$Message" -m "$Description"
           }
-          $gitStatus=git status
-          $DeletedFiles =$gitStatus.where{ ($_.Contains("deleted:")) }.split(":")[1].trim()
+          $gitStatus=(git status).split("`n")
+          $DeletedFiles = $gitStatus.where{ ($_.Contains("deleted:")) }.split(":")[1].trim()
           foreach($deletedfile in $deletedfiles){
             Write-Host "$fileName" -ForegroundColor red
             Write-Host "DELETED"
