@@ -22,14 +22,12 @@ function get-GitRepos () {
 
 #private 
 function Test-GitAuth () {
-
   if ($Global:GitAuth) {
     return $Global:GitAuth
 
   }
   Write-Host "Please run Connect-Github first"
   break all
-
 }
 
 #private
@@ -99,7 +97,6 @@ function Add-GitAutoCommitPush () {
     [string]$ProjectPath = ((Get-Item -Path ".\").FullName)
   )
 
-
   if (test-GitLocal -ProjectPath $ProjectPath) {
 
     if (test-GitRemote -ProjectPath $ProjectPath) {
@@ -135,7 +132,7 @@ function Add-GitAutoCommitPush () {
           $Message = " Modified " + $fileName
 
         }
-        $description = "Changed functions: `n" + $ChangedFunctions -join ","
+        $description = "Changed functions: `n" + ($ChangedFunctions -join "`n")
         Write-Host "$fileName" -ForegroundColor Yellow
         Write-Host "$message"
         Write-Host "$description" -ForegroundColor Gray
@@ -163,7 +160,6 @@ function test-GitLocal () {
     throw [System.IO.FileNotFoundException]"NO .git Folder present"
     return $false
   }
-
 }
 
 #private
@@ -176,7 +172,6 @@ function test-GitRemote () {
   $config = (Get-Content "$($ProjectPath)\.git\config").split("`n")
   $urls = ($config | Where-Object { $_ -like "*url = *" })
   $giturl = ($urls | Where-Object { $_ -like "*github*" }).split("=").Trim()[1].Replace(".git","")
-
 
   if ($repos.html_url.Contains($giturl)) {
     return $true
@@ -203,8 +198,6 @@ function Get-functions () {
   catch {
     Write-Host "$($file.FullName) is not a Powershell File"
   }
-
-
 }
 
 #Throws an Error
@@ -213,5 +206,4 @@ function remove-gitRepo () {
     [Parameter(mandatory = $true)] [string]$name
   )
   throw [System.NotSupportedException]"Somethings are just too powerful, Make your own mistakes, I'm not helping"
-
 }
