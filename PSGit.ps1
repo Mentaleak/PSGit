@@ -95,7 +95,8 @@ function Get-GitRepo () {
 function Add-GitAutoCommitPush () {
   param(
     #Example: C:\Scripts\
-    [string]$ProjectPath = ((Get-ChildItem ($psISE.CurrentFile.FullPath)).Directory.FullName)
+    [string]$ProjectPath = ((Get-ChildItem ($psISE.CurrentFile.FullPath)).Directory.FullName),
+    $fixes=$null
   )
 
   if (test-GitLocal -ProjectPath $ProjectPath) {
@@ -144,6 +145,12 @@ function Add-GitAutoCommitPush () {
           else
           {
             $description = "Content Modified"
+          }
+          if($fixes -ne $null)
+          {
+            $fixes = $fixes | sort | Get-Unique
+            $fixed =  $fixes -join " ; Fixed #"
+            $description += "`n Fixes: Fixed #$($fixed)"
           }
           Write-Host "$fileName" -ForegroundColor Yellow
           Write-Host "$Message"
