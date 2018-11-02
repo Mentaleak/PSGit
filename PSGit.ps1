@@ -115,7 +115,7 @@ function Add-GitAutoCommitPush () {
         $functionlist = Get-functions $fileName
 
         $mods = $diffdata | Where-Object { ($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
-        $ChangedFunctions = [string]@()
+        $ChangedFunctions = @()
         foreach ($mod in $mods) {
           foreach ($fn in $functionlist) {
             if ($fn.definition.Contains($mod.Substring(1,$mod.Length - 1))) {
@@ -132,8 +132,7 @@ function Add-GitAutoCommitPush () {
           $Message = " Modified " + $fileName
 
         }
-        [string]$FunctionString = $ChangedFunctions -join " ; `n "
-        write-host $FunctionString 
+        $FunctionString = $ChangedFunctions -join "`n"
         $Description = "Changed functions: `n $($FunctionString)"
         Write-Host "$fileName" -ForegroundColor Yellow
         Write-Host "$Message"
