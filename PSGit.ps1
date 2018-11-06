@@ -110,6 +110,7 @@ function Add-GitAutoCommitPush () {
 		$fixes = $null
 	)
 
+
 	if (test-GitLocal -ProjectPath $ProjectPath) {
 
 		if (test-GitRemote -ProjectPath $ProjectPath) {
