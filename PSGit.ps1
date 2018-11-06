@@ -1,4 +1,4 @@
-#private
+#private 
 function set-WebSecurity () {
 	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 }
@@ -184,10 +184,10 @@ function Add-GitAutoCommitPush () {
 					Write-Host "$deletedfile" -ForegroundColor red
 					Write-Host "DELETED"
 				}
-            
-           git push 2> $test
 
-            return $test
+				git push 2> $test
+
+				return $test
 			}
 
 
