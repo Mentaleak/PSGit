@@ -19,6 +19,23 @@ function get-GitRepos () {
 	return Invoke-RestMethod -Uri "https://api.github.com/user/repos" -Headers (Test-GitAuth)
 }
 
+#public
+function get-GitRepo () {
+	param(
+		#Example: C:\Scripts\
+		[string]$ProjectPath = ((Get-Item -Path ".\").FullName)
+	)
+	$repos = get-GitRepos
+	$config = (Get-Content "$($ProjectPath)\.git\config").split("`n")
+	$urls = ($config | Where-Object { $_ -like "*url = *" })
+	$giturl = ($urls | Where-Object { $_ -like "*github*" }).split("=").Trim()[1].Replace(".git","")
+
+	if ($repos.html_url.Contains($giturl)) {
+        return ($repos | where-object {$_.html_url.Contains($giturl)})
+	}
+	throw [System.UriFormatException]"The repo $($giturl) Does not exsist"
+	break all
+}
 
 #private 
 function Test-GitAuth () {
