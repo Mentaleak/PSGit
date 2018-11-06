@@ -84,7 +84,7 @@ function Connect-github () {
 
 # Binds folder to github
 # requires git
-function Get-GitRepo () {
+function Copy-GitRepo () {
 	param(
 		#Example: C:\Scripts\
 		[Parameter(mandatory = $true)] [string]$LocalPath,
