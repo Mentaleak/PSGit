@@ -184,7 +184,9 @@ function Add-GitAutoCommitPush () {
 					Write-Host "$deletedfile" -ForegroundColor red
 					Write-Host "DELETED"
 				}
-				git push 2>$null
+			$error=""	
+            git push 2>$Error
+            return $error
 			}
 
 
@@ -264,6 +266,7 @@ function remove-gitRepo () {
 	throw [System.NotSupportedException]"Somethings are just too powerful, Make your own mistakes, I'm not helping"
 }
 
+#gets data of user
 function get-gituserdata () {
 	$userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers (Test-GitAuth)
 	$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers (Test-GitAuth)
