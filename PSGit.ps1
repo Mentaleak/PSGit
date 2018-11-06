@@ -77,7 +77,7 @@ function Connect-github () {
 		break all
 	}
 
-	git config --global user.name "$($userdata)"
+	git config --global user.name "$($userdata.login)"
 	$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers $tmpheader
 	git config --global user.email "$($useremail.email)"
 
