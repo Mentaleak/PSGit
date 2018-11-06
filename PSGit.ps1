@@ -77,6 +77,7 @@ function Connect-github () {
 		break all
 	}
 
+	$userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers $tmpheader
 	git config --global user.name "$($userdata.login)"
 	$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers $tmpheader
 	git config --global user.email "$($useremail.email)"
@@ -122,6 +123,11 @@ function Add-GitAutoCommitPush () {
 
 			Set-Location $ProjectPath
 			#get diff list, including new files
+
+			$userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers $tmpheader
+			git config --global user.name "$($userdata.login)"
+			$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers $tmpheader
+			git config --global user.email "$($useremail.email)"
 
 			$gitStatus = (git status).split("`n")
 			git add -N *
