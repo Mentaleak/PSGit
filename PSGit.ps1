@@ -110,9 +110,9 @@ function Add-GitAutoCommitPush () {
 		$fixes = $null
 	)
 
-	Writ-host "Test Local"
+	Write-host "Test Local"
 	if (test-GitLocal -ProjectPath $ProjectPath) {
-		Writ-host "Test remote"
+		Write-host "Test remote"
 		if (test-GitRemote -ProjectPath $ProjectPath) {
 
 			Set-Location $ProjectPath
