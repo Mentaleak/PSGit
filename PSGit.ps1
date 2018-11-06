@@ -23,12 +23,21 @@ function get-GitRepos () {
 
 #private 
 function Test-GitAuth () {
+	param(
+		[switch]$nobreak
+	)
 	if ($Global:GitAuth) {
 		return $Global:GitAuth
 
 	}
 	Write-Host "Please run Connect-Github first"
-	break all
+	if (!$nobreak) {
+		break all
+	}
+	else
+	{
+		return $false
+	}
 }
 
 #private
