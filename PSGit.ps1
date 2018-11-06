@@ -188,7 +188,7 @@ function Add-GitAutoCommitPush () {
             try{git push}
             catch
             {
-            $reterror= $_
+            $reterror= $_.Exception
             }
             return $reterror
 			}
@@ -281,3 +281,5 @@ function get-gituserdata () {
 
 	return $user
 }
+
+
