@@ -185,11 +185,8 @@ function Add-GitAutoCommitPush () {
 					Write-Host "DELETED"
 				}
             
-            try{git push > $test}
-            catch
-            {
-            $test
-            }
+           git push > $test
+
             return $test
 			}
 
