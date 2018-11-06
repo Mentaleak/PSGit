@@ -75,11 +75,6 @@ function Connect-github () {
 		throw [System.UnauthorizedAccessException]"$((($_.ErrorDetails.Message) | ConvertFrom-Json).message)"
 		break all
 	}
-
-	git config --global user.name "$($userdata.login)"
-	$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers $tmpheader
-	git config --global user.email "$($useremail.email)"
-
 	Write-Host "Connection Successful"
 	Write-Host "Login: $($userdata.Login)"
 	Write-Host "URL: $($userdata.html_url)"
