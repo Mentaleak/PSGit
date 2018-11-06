@@ -184,7 +184,6 @@ function Add-GitAutoCommitPush () {
 					Write-Host "$deletedfile" -ForegroundColor red
 					Write-Host "DELETED"
 				}
-			$error=""	
             git push 2>$Error
             return $error
 			}
