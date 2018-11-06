@@ -71,11 +71,14 @@ function Get-GitAuthHeader () {
 function Connect-github () {
 	set-WebSecurity
 	$tmpheader = Get-GitAuthHeader -cred (Get-Credential)
-	try { $userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers $tmpheader }
+	try { $userdata = Invoke-RestMethod -Uri "https://api.github.com/user/" -Headers $tmpheader }
 	catch {
 		throw [System.UnauthorizedAccessException]"$((($_.ErrorDetails.Message) | ConvertFrom-Json).message)"
 		break all
 	}
+	git config --global user.name "$($userdata)"
+	#git config --global user.email you@example.com
+
 	Write-Host "Connection Successful"
 	Write-Host "Login: $($userdata.Login)"
 	Write-Host "URL: $($userdata.html_url)"
