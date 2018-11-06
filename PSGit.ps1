@@ -121,11 +121,11 @@ function Add-GitAutoCommitPush () {
 
 			Set-Location $ProjectPath
 			#get diff list, including new files
-            
-            #set config user
-             $gituser = get-gituserdata
-             	git config --global user.name "$($gituser.UserData.login)"
-	            git config --global user.email "$($gituser.UserEmail.email)"
+
+			#set config user
+			$gituser = get-gituserdata
+			git config --global user.name "$($gituser.UserData.login)"
+			git config --global user.email "$($gituser.UserEmail.email)"
 
 			$gitStatus = (git status).split("`n")
 			git add -N *
@@ -269,13 +269,13 @@ function remove-gitRepo () {
 	throw [System.NotSupportedException]"Somethings are just too powerful, Make your own mistakes, I'm not helping"
 }
 
-function get-gituserdata(){
-    $userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers (Test-GitAuth)
-    $useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers (Test-GitAuth)
-        $user = New-Object PSObject -Property @{            
-            UserData = $userdata
-            UserEmail = $useremail  
-        }                           
-      
-    return $user
+function get-gituserdata () {
+	$userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers (Test-GitAuth)
+	$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers (Test-GitAuth)
+	$user = New-Object PSObject -Property @{
+		UserData = $userdata
+		UserEmail = $useremail
+	}
+
+	return $user
 }
