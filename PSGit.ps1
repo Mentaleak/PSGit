@@ -110,25 +110,25 @@ function Add-GitAutoCommitPush () {
 		$fixes = $null
 	)
 
-	Write-Host "Test Local"
+	#Write-Host "Test Local"
 	if (test-GitLocal -ProjectPath $ProjectPath) {
-		Write-Host "Test remote"
+		#Write-Host "Test remote"
 		if (test-GitRemote -ProjectPath $ProjectPath) {
 
 			Set-Location $ProjectPath
 			#get diff list, including new files
 
 			#set config user
-			Write-Host "getuserdata"
+			#Write-Host "getuserdata"
 			$gituser = get-gituserdata
 			git config --global user.name "$($gituser.UserData.login)"
 			git config --global user.email "$($gituser.UserEmail.email)"
 
-			Write-Host "Get Diff"
+			#Write-Host "Get Diff"
 			$gitStatus = (git status).split("`n")
 			git add -N *
 			$difflist = (git diff)
-			Write-Host "Compare Diff $difflist"
+			#Write-Host "Compare Diff $difflist"
 			if ($difflist) {
 				$difflist = (git diff).split("`n")
 				Write-Host "$($difflist.Count) Differences Found"
@@ -189,7 +189,8 @@ function Add-GitAutoCommitPush () {
 					Write-Host "DELETED"
 				}
 
-				git push
+				git push 2>$test
+                return $test
 
 
 			}
