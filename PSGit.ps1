@@ -119,16 +119,16 @@ function Add-GitAutoCommitPush () {
 			#get diff list, including new files
 
 			#set config user
-			Writ-host "getuserdata"
+			Write-host "getuserdata"
 			$gituser = get-gituserdata
 			git config --global user.name "$($gituser.UserData.login)"
 			git config --global user.email "$($gituser.UserEmail.email)"
 
-			Writ-host "Get Diff"
+			Write-host "Get Diff"
 			$gitStatus = (git status).split("`n")
 			git add -N *
 			$difflist = (git diff)
-			Writ-host "Compare Diff"
+			Write-host "Compare Diff"
 			if ($difflist) {
 				$difflist = (git diff).split("`n")
 				Write-Host "$($difflist.Count) Differences Found"
