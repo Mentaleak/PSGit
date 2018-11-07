@@ -22,7 +22,6 @@ function get-GitRepos () {
 #public
 function get-GitRepo () {
 	param(
-		#Example: C:\Scripts\
 		[string]$ProjectPath = ((Get-Item -Path ".\").FullName)
 	)
 	$repos = get-GitRepos
@@ -31,10 +30,22 @@ function get-GitRepo () {
 	$giturl = ($urls | Where-Object { $_ -like "*github*" }).split("=").Trim()[1].Replace(".git","")
 
 	if ($repos.html_url.Contains($giturl)) {
-        return ($repos | where-object {$_.html_url.Contains($giturl)})
+        $RepoData=($repos | where-object {$_.html_url.Contains($giturl)})
+         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name collaborators_data -Value (get-GitRepoCollaborators -FullName "$($RepoData.full_name)")
+
+        return $RepoData
 	}
 	throw [System.UriFormatException]"The repo $($giturl) Does not exsist"
 	break all
+}
+
+#private
+function get-GitRepoCollaborators (){
+	param(
+		#Example: Mentaleak\PSGit
+		[string]$FullName
+	)
+    return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/collaborators" -Headers (Test-GitAuth)
 }
 
 #private 
@@ -216,7 +227,6 @@ function Add-GitAutoCommitPush () {
 		}
 	}
 }
-
 
 #private
 function test-GitLocal () {
