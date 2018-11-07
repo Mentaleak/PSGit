@@ -175,13 +175,16 @@ function Add-GitAutoCommitPush () {
 	param(
 		#Example: C:\Scripts\
 		[string]$ProjectPath = ((Get-ChildItem ($psISE.CurrentFile.FullPath)).Directory.FullName),
-		$fixes = $null
+		$fixes = $null,
+        [switch]$force
 	)
 
 	#Write-Host "Test Local"
 	if (test-GitLocal -ProjectPath $ProjectPath) {
 		#Write-Host "Test remote"
 		if (test-GitRemote -ProjectPath $ProjectPath) {
+            #check branch divergence
+            if((test-GitSyncStatus -ProjectPath $ProjectPath) -or $force){
 
 			Set-Location $ProjectPath
 			#get diff list, including new files
@@ -257,13 +260,31 @@ function Add-GitAutoCommitPush () {
 					Write-Host "DELETED"
 				}
 
-				git push 
+				git push --force 2> $null
 
 			}
 
-
+        }
+        else{
+        Set-Location $ProjectPath
+        git status
+        }
 		}
 	}
+}
+
+#private
+function test-GitSyncStatus (){
+    param(
+		    #Example: C:\Scripts\
+		    [string]$ProjectPath = ((Get-Item -Path ".\").FullName)
+	    )
+    Set-Location $ProjectPath
+    $gitStatus = (git status).split("`n").where{ ($_.Contains("diverged")) }
+        if($gitStatus){
+            return $false
+        }
+        return $true
 }
 
 #private
@@ -337,7 +358,7 @@ function remove-gitRepo () {
 	throw [System.NotSupportedException]"Somethings are just too powerful, Make your own mistakes, I'm not helping"
 }
 
-#gets data of user
+#gets data of user 
 function get-gituserdata () {
 	$userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers (Test-GitAuth)
 	$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers (Test-GitAuth)
