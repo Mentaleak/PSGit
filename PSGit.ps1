@@ -31,8 +31,9 @@ function get-GitRepo () {
 
 	if ($repos.html_url.Contains($giturl)) {
         $RepoData=($repos | where-object {$_.html_url.Contains($giturl)})
-         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name collaborators_data -Value (get-GitRepoCollaborators -FullName "$($RepoData.full_name)")
-
+         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name collaborators_data -Value (get-GitRepoCollaboratorsData -FullName "$($RepoData.full_name)")
+         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_data -Value (get-GitRepoContributorsData -FullName "$($RepoData.full_name)")
+         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_stats -Value (get-GitRepoContributorsStats -FullName "$($RepoData.full_name)")
         return $RepoData
 	}
 	throw [System.UriFormatException]"The repo $($giturl) Does not exsist"
@@ -40,13 +41,52 @@ function get-GitRepo () {
 }
 
 #private
-function get-GitRepoCollaborators (){
+function get-GitRepoCollaboratorsData (){
 	param(
 		#Example: Mentaleak\PSGit
 		[string]$FullName
 	)
     return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/collaborators" -Headers (Test-GitAuth)
 }
+
+function get-GitRepoContributorsData (){
+	param(
+		#Example: Mentaleak\PSGit
+		[string]$FullName
+	)
+    return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/stats/contributors" -Headers (Test-GitAuth)
+}
+
+#cleaner easier to read
+function get-GitRepoContributorsStats (){
+	param(
+		#Example: Mentaleak\PSGit
+		[string]$FullName
+	)
+    $RepoContributors = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/stats/contributors" -Headers (Test-GitAuth)
+    $contributors=@()
+                    foreach($author in $RepoContributors)
+                    {
+                            $sum_a=0
+                            $sum_d=0
+                            $sum_c=0
+                            $author.weeks.a| Foreach { $sum_a += $_}
+                            $author.weeks.d| Foreach { $sum_d += $_}
+                            $author.weeks.c| Foreach { $sum_c += $_}
+                            #$authors+="`nContributor: $($author.author.login)      Adds: $sum_a    Deletes: $sum_d    Commits: $sum_c"
+                                $contributor = [PSCustomObject]@{
+                                    AuthorType=if($($Fullname.Split("/")[0]) -eq "$($author.author.login)"){"Owner"}else{"Contributor"}
+                                    Author=$author.author.login
+                                    Changes=[int]$sum_a+[int]$sum_d
+                                    Adds=$sum_a
+                                    Deletes=$sum_d
+                                    Commits=$sum_c
+                                }
+                            $contributors+=$contributor
+                    }
+                    return $contributors | Sort-Object -Property changes -Descending
+}
+
 
 #private 
 function Test-GitAuth () {
