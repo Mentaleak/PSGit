@@ -48,6 +48,14 @@ function get-GitRepoCollaborators (){
     return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/collaborators" -Headers (Test-GitAuth)
 }
 
+#private
+function get-GitRepoContributors (){
+	param(
+		#Example: Mentaleak\PSGit
+		[string]$FullName
+	)
+    return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/contributors" -Headers (Test-GitAuth)
+}
 #private 
 function Test-GitAuth () {
 	param(
