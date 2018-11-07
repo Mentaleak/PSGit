@@ -259,7 +259,6 @@ function Add-GitAutoCommitPush () {
 
 				git push 2> $global:gitpusherror
 
-
 			}
 
 
