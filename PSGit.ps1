@@ -89,7 +89,7 @@ function get-GitRepoContributorsStats (){
 }
 
 
-#private 
+# private 
 function Test-GitAuth () {
 	param(
 		[switch]$nobreak
@@ -108,7 +108,7 @@ function Test-GitAuth () {
 	}
 }
 
-#private
+# private
 function Get-GitAuthHeader () {
 	param(
 		[string]$user,
@@ -135,7 +135,7 @@ function Get-GitAuthHeader () {
 }
 
 
-#connects to github for API
+# connects to github for API
 function Connect-github () {
 	set-WebSecurity
 	$tmpheader = Get-GitAuthHeader -cred (Get-Credential)
@@ -171,7 +171,7 @@ function Copy-GitRepo () {
 #Example:
 #Get-GitRepo -LocalPath "C:\Scripts\" -RemoteRepo "https://github.com/Mentaleak/PSGit"
 
-#updates git repo
+# updates git repo
 function Add-GitAutoCommitPush () {
 	param(
 		#Example: C:\Scripts\
@@ -274,7 +274,7 @@ function Add-GitAutoCommitPush () {
 	}
 }
 
-#private
+# private
 function test-GitSyncStatus (){
     param(
 		    #Example: C:\Scripts\
@@ -288,7 +288,7 @@ function test-GitSyncStatus (){
         return $true
 }
 
-#private
+# private
 function test-GitLocal () {
 	param(
 		#Example: C:\Scripts\
@@ -305,7 +305,7 @@ function test-GitLocal () {
 	}
 }
 
-#private
+# private
 function test-GitRemote () {
 	param(
 		#Example: C:\Scripts\
@@ -324,7 +324,7 @@ function test-GitRemote () {
 	break all
 }
 
-#returns functions from file
+# returns functions from file
 function Get-functions () {
 	param(
 		[Parameter(mandatory = $true)] [string]$filePath
@@ -332,7 +332,7 @@ function Get-functions () {
 
 	$file = Get-ChildItem $filePath
 	$oldarray = Get-ChildItem function:\
-	$acceptableExtensions = @(".dll",".ps1",".psm1",".psd1",".cdxml",".xaml")
+	$acceptableExtensions = @(".dll",".ps1",".psm1")
 
 	if ($acceptableExtensions.Contains($file[0].Extension)) {
 		Import-Module $($file.FullName)
