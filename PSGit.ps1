@@ -397,7 +397,7 @@ function initialize-GitPull () {
 }
 
 
-function get-gitIssues(){
+function get-GitIssues(){
 	param(
 		#Example: Mentaleak\PSGit
 		[string]$FullName
@@ -406,15 +406,62 @@ function get-gitIssues(){
                 return $RepoIssues
 }
 
-function add-gitIssue(){
+function add-GitIssue(){
 param(
 		#Example: Mentaleak\PSGit
-		[string]$RepoFullName,
-        [string]$title,
-        [string]$body
+		[Parameter(mandatory = $true)][string]$RepoFullName,
+        [Parameter(mandatory = $true)][string]$title,
+        [Parameter(mandatory = $true)][string]$body,
+        [array]$Assignees,
+        [array]$Labels,
+        [string]$Milestone
+           
 	)
-    $postparams = "{`"title`":`"$($title)`",`"body`":`"$($body)`" }"
+    #$postparams = "{`"title`":`"$($title)`",`"body`":`"$($body)`" }"
+    $assigneesJSON="[`"$($assignees -join "``", ``"")`"]"
+    $labelsJSON="[`"$($Labels -join "``", ``"")`"]"
+    $postparams = "{`"title`":`"$($title)`", `
+    `"body`":`"$($body)`""
+    if($Assignees){ $postparams += ",`"assignees`":$($assigneesJSON)"}
+    if($Labels){ $postparams += ",`"labels`":$($labelsJSON)"}
+    if($Milestone){ $postparams += ",`"milestone`":`"$($Milestone)`""}
+    $postparams +=" }"
     $NewIssue = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth) -Method Post -Body $postparams
-
+    #write-host $postparams
 
 }
+function get-GitTeams(){}
+
+function get-GitForks(){}
+
+function get-GitHooks(){}
+
+function get-GitEvents(){}
+
+function get-GitSubscribers(){}
+
+function get-GitLanguages(){}
+
+function get-GitSubscription(){}
+
+function get-GitAsignees(){}
+
+function get-GitBranches(){}
+
+function get-GitCommits(){}
+
+function get-GitContent(){}
+
+function get-GitMerges(){}
+
+function get-GitPulls(){}
+
+function get-GitDownloads(){}
+
+function get-GitMilestones(){}
+
+function get-GitNotifications(){}
+
+function get-GitReleases(){}
+
+function get-GitDeployments(){}
