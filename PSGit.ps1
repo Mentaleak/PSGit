@@ -395,3 +395,26 @@ function initialize-GitPull () {
     }
 
 }
+
+
+function get-gitIssues(){
+	param(
+		#Example: Mentaleak\PSGit
+		[string]$FullName
+	)
+    $RepoIssues = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth)
+                return $RepoIssues
+}
+
+function add-gitIssue(){
+param(
+		#Example: Mentaleak\PSGit
+		[string]$RepoFullName,
+        [string]$title,
+        [string]$body
+	)
+    $postparams = "{`"title`":`"$($title)`",`"body`":`"$($body)`" }"
+    $NewIssue = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth) -Method Post -Body $postparams
+
+
+}
