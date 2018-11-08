@@ -371,3 +371,26 @@ function get-gituserdata () {
 }
 
 
+function initialize-GitPull () {
+	param(
+		#Example: C:\Scripts\
+		[string]$ProjectPath = ((Get-ChildItem ($psISE.CurrentFile.FullPath)).Directory.FullName),
+        [switch]$force
+	)
+
+
+	#Write-Host "Test Local"
+	if (test-GitLocal -ProjectPath $ProjectPath) {
+		#Write-Host "Test remote"
+		if (test-GitRemote -ProjectPath $ProjectPath) {
+            #check branch divergence
+            if((test-GitSyncStatus -ProjectPath $ProjectPath) -or $force){
+
+			Set-Location $ProjectPath
+            git pull
+
+            }
+        }
+    }
+
+}
