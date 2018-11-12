@@ -21,7 +21,7 @@ function get-GitRepos () {
 }
 
 #public
-function get-GitRepo () {
+function Get-GitRepo () {
 	param(
 		[string]$ProjectPath = ((Get-Item -Path ".\").FullName)
 	)
@@ -31,61 +31,61 @@ function get-GitRepo () {
 	$giturl = ($urls | Where-Object { $_ -like "*github*" }).split("=").Trim()[1].Replace(".git","")
 
 	if ($repos.html_url.Contains($giturl)) {
-        $RepoData=($repos | where-object {$_.html_url.Contains($giturl)})
-         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name collaborators_data -Value (get-GitRepoCollaboratorsData -FullName "$($RepoData.full_name)")
-         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_data -Value (get-GitRepoContributorsData -FullName "$($RepoData.full_name)")
-         Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_stats -Value (get-GitRepoContributorsStats -FullName "$($RepoData.full_name)")
-        return $RepoData
+		$RepoData = ($repos | Where-Object { $_.html_url.Contains($giturl) })
+		Add-Member -InputObject $RepoData -MemberType NoteProperty -Name collaborators_data -Value (get-GitRepoCollaboratorsData -FullName "$($RepoData.full_name)")
+		Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_data -Value (get-GitRepoContributorsData -FullName "$($RepoData.full_name)")
+		Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_stats -Value (get-GitRepoContributorsStats -FullName "$($RepoData.full_name)")
+		return $RepoData
 	}
 	throw [System.UriFormatException]"The repo $($giturl) Does not exsist"
 	break all
 }
 
 #private
-function get-GitRepoCollaboratorsData (){
+function get-GitRepoCollaboratorsData () {
 	param(
 		#Example: Mentaleak\PSGit
 		[string]$FullName
 	)
-    return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/collaborators" -Headers (Test-GitAuth)
+	return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/collaborators" -Headers (Test-GitAuth)
 }
 
-function get-GitRepoContributorsData (){
+function get-GitRepoContributorsData () {
 	param(
 		#Example: Mentaleak\PSGit
 		[string]$FullName
 	)
-    return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/stats/contributors" -Headers (Test-GitAuth)
+	return Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/stats/contributors" -Headers (Test-GitAuth)
 }
 
 #cleaner easier to read
-function get-GitRepoContributorsStats (){
+function get-GitRepoContributorsStats () {
 	param(
 		#Example: Mentaleak\PSGit
 		[string]$FullName
 	)
-    $RepoContributors = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/stats/contributors" -Headers (Test-GitAuth)
-    $contributors=@()
-                    foreach($author in $RepoContributors)
-                    {
-                            $sum_a=0
-                            $sum_d=0
-                            $sum_c=0
-                            $author.weeks.a| Foreach { $sum_a += $_}
-                            $author.weeks.d| Foreach { $sum_d += $_}
-                            $author.weeks.c| Foreach { $sum_c += $_}
-                            #$authors+="`nContributor: $($author.author.login)      Adds: $sum_a    Deletes: $sum_d    Commits: $sum_c"
-                                $contributor = [PSCustomObject]@{
-                                    AuthorType=if($($Fullname.Split("/")[0]) -eq "$($author.author.login)"){"Owner"}else{"Contributor"}
-                                    Author=$author.author.login
-                                    Changes=[int]$sum_a+[int]$sum_d
-                                    Adds=$sum_a
-                                    Deletes=$sum_d
-                                    Commits=$sum_c
-                                }
-                            $contributors+=$contributor
-                    }
-                    return $contributors | Sort-Object -Property changes -Descending
+	$RepoContributors = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/stats/contributors" -Headers (Test-GitAuth)
+	$contributors = @()
+	foreach ($author in $RepoContributors)
+	{
+		$sum_a = 0
+		$sum_d = 0
+		$sum_c = 0
+		$author.weeks.a | ForEach-Object { $sum_a += $_ }
+		$author.weeks.d | ForEach-Object { $sum_d += $_ }
+		$author.weeks.c | ForEach-Object { $sum_c += $_ }
+		#$authors+="`nContributor: $($author.author.login)      Adds: $sum_a    Deletes: $sum_d    Commits: $sum_c"
+		$contributor = [pscustomobject]@{
+			AuthorType = if ($($Fullname.split("/")[0]) -eq "$($author.author.login)") { "Owner" } else { "Contributor" }
+			Author = $author.Author.login
+			Changes = [int]$sum_a + [int]$sum_d
+			Adds = $sum_a
+			Deletes = $sum_d
+			Commits = $sum_c
+		}
+		$contributors += $contributor
+	}
+	return $contributors | Sort-Object -Property changes -Descending
 }
 
 
@@ -177,115 +177,115 @@ function Add-GitAutoCommitPush () {
 		#Example: C:\Scripts\
 		[string]$ProjectPath = ((Get-ChildItem ($psISE.CurrentFile.FullPath)).Directory.FullName),
 		$fixes = $null,
-        [switch]$force
+		[switch]$force
 	)
 
 	#Write-Host "Test Local"
 	if (test-GitLocal -ProjectPath $ProjectPath) {
 		#Write-Host "Test remote"
 		if (test-GitRemote -ProjectPath $ProjectPath) {
-            #check branch divergence
-            if((test-GitSyncStatus -ProjectPath $ProjectPath) -or $force){
+			#check branch divergence
+			if ((test-GitSyncStatus -ProjectPath $ProjectPath) -or $force) {
 
-			Set-Location $ProjectPath
-			#get diff list, including new files
+				Set-Location $ProjectPath
+				#get diff list, including new files
 
-			#set config user
-			#Write-Host "getuserdata"
-			$gituser = get-gituserdata
-			git config --global user.name "$($gituser.UserData.login)"
-			git config --global user.email "$($gituser.UserEmail.email)"
+				#set config user
+				#Write-Host "getuserdata"
+				$gituser = get-gituserdata
+				git config --global user.name "$($gituser.UserData.login)"
+				git config --global user.email "$($gituser.UserEmail.email)"
 
-			#Write-Host "Get Diff"
-			$gitStatus = (git status).split("`n")
-			git add -N *
-			$difflist = (git diff)
-			#Write-Host "Compare Diff $difflist"
-			if ($difflist) {
-				$difflist = (git diff).split("`n")
-				Write-Host "$($difflist.Count) Differences Found"
+				#Write-Host "Get Diff"
+				$gitStatus = (git status).split("`n")
+				git add -N *
+				$difflist = (git diff)
+				#Write-Host "Compare Diff $difflist"
+				if ($difflist) {
+					$difflist = (git diff).split("`n")
+					Write-Host "$($difflist.Count) Differences Found"
 
-				#look at each file add and commit file with changes
-				foreach ($diff in $difflist.where{ ($_.Contains("diff --git")) -and !($_.Contains("(`"diff --git`")")) })
-				{
-					$fileName = $diff.Substring($diff.IndexOf("b/") + 2,($diff.Length - $diff.IndexOf("b/") - 2))
-					$diffdata = (git diff $fileName).split("`n")
-					$functionlist = Get-functions $fileName
+					#look at each file add and commit file with changes
+					foreach ($diff in $difflist.where{ ($_.Contains("diff --git")) -and !($_.Contains("(`"diff --git`")")) })
+					{
+						$fileName = $diff.Substring($diff.IndexOf("b/") + 2,($diff.Length - $diff.IndexOf("b/") - 2))
+						$diffdata = (git diff $fileName).split("`n")
+						$functionlist = Get-functions $fileName
 
-					$mods = $diffdata | Where-Object { ($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
-					$ChangedFunctions = @()
-					foreach ($mod in $mods) {
-						foreach ($fn in $functionlist) {
-							if ($fn.definition.Contains($mod.Substring(1,$mod.Length - 1))) {
-								$ChangedFunctions += "$($fn.name)"
+						$mods = $diffdata | Where-Object { ($_[0] -eq "+" -or $_[0] -eq "-") -and ($_ -match "[a-zA-Z0-9]") }
+						$ChangedFunctions = @()
+						foreach ($mod in $mods) {
+							foreach ($fn in $functionlist) {
+								if ($fn.Definition.Contains($mod.Substring(1,$mod.Length - 1))) {
+									$ChangedFunctions += "$($fn.name)"
+								}
 							}
 						}
+						$ChangedFunctions = $ChangedFunctions | sort | Get-Unique
+
+						if ($difflist[$difflist.IndexOf($diff) + 1].Contains("new file")) {
+							$Message = " Added " + $fileName
+
+						} else {
+							$Message = " Modified " + $fileName
+
+						}
+						if ($ChangedFunctions -ne $null)
+						{
+							$FunctionString = $ChangedFunctions -join "`n"
+							$Description = "Changed functions: `n$($FunctionString)"
+						}
+						else
+						{
+							$description = "Content Modified"
+						}
+						if ($fixes -ne $null)
+						{
+							$fixes = $fixes | sort | Get-Unique
+							$fixed = $fixes -join " and resolves #"
+							$description += "`n This Commit Resolves #$($fixed)"
+						}
+						Write-Host "$fileName" -ForegroundColor Yellow
+						Write-Host "$Message"
+						Write-Host "$Description" -ForegroundColor Gray
+						git add $fileName
+						git commit -m "$Message" -m "$Description"
 					}
-					$ChangedFunctions = $ChangedFunctions | sort | Get-Unique
-
-					if ($difflist[$difflist.IndexOf($diff) + 1].Contains("new file")) {
-						$Message = " Added " + $fileName
-
-					} else {
-						$Message = " Modified " + $fileName
-
-					}
-					if ($ChangedFunctions -ne $null)
+					$DeletedFiles = ($gitStatus.where{ ($_.Contains("deleted:")) })
+					if ($deletedFiles)
 					{
-						$FunctionString = $ChangedFunctions -join "`n"
-						$Description = "Changed functions: `n$($FunctionString)"
+						$DeletedFiles = $DeletedFiles.split(":")[1].Trim()
 					}
-					else
-					{
-						$description = "Content Modified"
+					foreach ($deletedfile in $deletedfiles) {
+						Write-Host "$deletedfile" -ForegroundColor red
+						Write-Host "DELETED"
 					}
-					if ($fixes -ne $null)
-					{
-						$fixes = $fixes | sort | Get-Unique
-						$fixed = $fixes -join " and resolves #"
-						$description += "`n This Commit Resolves #$($fixed)"
-					}
-					Write-Host "$fileName" -ForegroundColor Yellow
-					Write-Host "$Message"
-					Write-Host "$Description" -ForegroundColor Gray
-					git add $fileName
-					git commit -m "$Message" -m "$Description"
-				}
-				$DeletedFiles = ($gitStatus.where{ ($_.Contains("deleted:")) })
-				if ($deletedFiles)
-				{
-					$DeletedFiles = $DeletedFiles.split(":")[1].Trim()
-				}
-				foreach ($deletedfile in $deletedfiles) {
-					Write-Host "$deletedfile" -ForegroundColor red
-					Write-Host "DELETED"
-				}
 
-				git push --force 2> $null
+					git push --force 2>$null
+
+				}
 
 			}
-
-        }
-        else{
-        Set-Location $ProjectPath
-        git status
-        }
+			else {
+				Set-Location $ProjectPath
+				git status
+			}
 		}
 	}
 }
 
 # private
-function test-GitSyncStatus (){
-    param(
-		    #Example: C:\Scripts\
-		    [string]$ProjectPath = ((Get-Item -Path ".\").FullName)
-	    )
-    Set-Location $ProjectPath
-    $gitStatus = (git status).split("`n").where{ ($_.Contains("diverged")) }
-        if($gitStatus){
-            return $false
-        }
-        return $true
+function test-GitSyncStatus () {
+	param(
+		#Example: C:\Scripts\
+		[string]$ProjectPath = ((Get-Item -Path ".\").FullName)
+	)
+	Set-Location $ProjectPath
+	$gitStatus = (git status).split("`n").where{ ($_.Contains("diverged")) }
+	if ($gitStatus) {
+		return $false
+	}
+	return $true
 }
 
 # private
@@ -376,7 +376,7 @@ function initialize-GitPull () {
 	param(
 		#Example: C:\Scripts\
 		[string]$ProjectPath = ((Get-ChildItem ($psISE.CurrentFile.FullPath)).Directory.FullName),
-        [switch]$force
+		[switch]$force
 	)
 
 
@@ -384,84 +384,85 @@ function initialize-GitPull () {
 	if (test-GitLocal -ProjectPath $ProjectPath) {
 		#Write-Host "Test remote"
 		if (test-GitRemote -ProjectPath $ProjectPath) {
-            #check branch divergence
-            if((test-GitSyncStatus -ProjectPath $ProjectPath) -or $force){
+			#check branch divergence
+			if ((test-GitSyncStatus -ProjectPath $ProjectPath) -or $force) {
 
-			Set-Location $ProjectPath
-            git pull
+				Set-Location $ProjectPath
+				git pull
 
-            }
-        }
-    }
+			}
+		}
+	}
 
 }
 
 
-function get-GitIssues(){
+function get-GitIssues () {
 	param(
 		#Example: Mentaleak\PSGit
 		[string]$FullName
 	)
-    $RepoIssues = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth)
-                return $RepoIssues
+	$RepoIssues = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth)
+	return $RepoIssues
 }
 
-function add-GitIssue(){
-param(
+function add-GitIssue () {
+	param(
 		#Example: Mentaleak\PSGit
-		[Parameter(mandatory = $true)][string]$RepoFullName,
-        [Parameter(mandatory = $true)][string]$title,
-        [Parameter(mandatory = $true)][string]$body,
-        [array]$Assignees,
-        [array]$Labels,
-        [string]$Milestone
-           
+		[Parameter(mandatory = $true)] [string]$RepoFullName,
+		[Parameter(mandatory = $true)] [string]$title,
+		[Parameter(mandatory = $true)] [string]$body,
+		[array]$Assignees,
+		[array]$Labels,
+		[string]$Milestone
+
 	)
-    #$postparams = "{`"title`":`"$($title)`",`"body`":`"$($body)`" }"
-    $assigneesJSON="[`"$($assignees -join "``", ``"")`"]"
-    $labelsJSON="[`"$($Labels -join "``", ``"")`"]"
-    $postparams = "{`"title`":`"$($title)`", `
+	#$postparams = "{`"title`":`"$($title)`",`"body`":`"$($body)`" }"
+	$assigneesJSON = "[`"$($assignees -join "``", ``"")`"]"
+	$labelsJSON = "[`"$($Labels -join "``", ``"")`"]"
+	$postparams = "{`"title`":`"$($title)`", `
     `"body`":`"$($body)`""
-    if($Assignees){ $postparams += ",`"assignees`":$($assigneesJSON)"}
-    if($Labels){ $postparams += ",`"labels`":$($labelsJSON)"}
-    if($Milestone){ $postparams += ",`"milestone`":`"$($Milestone)`""}
-    $postparams +=" }"
-    $NewIssue = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth) -Method Post -Body $postparams
-    #write-host $postparams
+	if ($Assignees) { $postparams += ",`"assignees`":$($assigneesJSON)" }
+	if ($Labels) { $postparams += ",`"labels`":$($labelsJSON)" }
+	if ($Milestone) { $postparams += ",`"milestone`":`"$($Milestone)`"" }
+	$postparams += " }"
+	$NewIssue = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth) -Method Post -Body $postparams
+	#write-host $postparams
 
 }
-function get-GitTeams(){}
 
-function get-GitForks(){}
+function get-GitTeams () {}
 
-function get-GitHooks(){}
+function get-GitForks () {}
 
-function get-GitEvents(){}
+function get-GitHooks () {}
 
-function get-GitSubscribers(){}
+function get-GitEvents () {}
 
-function get-GitLanguages(){}
+function get-GitSubscribers () {}
 
-function get-GitSubscription(){}
+function get-GitLanguages () {}
 
-function get-GitAsignees(){}
+function get-GitSubscription () {}
 
-function get-GitBranches(){}
+function get-GitAsignees () {}
 
-function get-GitCommits(){}
+function get-GitBranches () {}
 
-function get-GitContent(){}
+function get-GitCommits () {}
 
-function get-GitMerges(){}
+function get-GitContent () {}
 
-function get-GitPulls(){}
+function get-GitMerges () {}
 
-function get-GitDownloads(){}
+function get-GitPulls () {}
 
-function get-GitMilestones(){}
+function get-GitDownloads () {}
 
-function get-GitNotifications(){}
+function get-GitMilestones () {}
 
-function get-GitReleases(){}
+function get-GitNotifications () {}
 
-function get-GitDeployments(){}
+function get-GitReleases () {}
+
+function get-GitDeployments () {}
