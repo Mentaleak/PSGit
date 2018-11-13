@@ -35,6 +35,7 @@ function Get-GitRepo () {
 		Add-Member -InputObject $RepoData -MemberType NoteProperty -Name collaborators_data -Value (get-GitRepoCollaboratorsData -FullName "$($RepoData.full_name)")
 		Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_data -Value (get-GitRepoContributorsData -FullName "$($RepoData.full_name)")
 		Add-Member -InputObject $RepoData -MemberType NoteProperty -Name contributors_stats -Value (get-GitRepoContributorsStats -FullName "$($RepoData.full_name)")
+		Add-Member -InputObject $RepoData -MemberType NoteProperty -Name issues_data -Value (get-GitIssues -FullName "$($RepoData.full_name)")
 		return $RepoData
 	}
 	throw [System.UriFormatException]"The repo $($giturl) Does not exsist"
@@ -466,3 +467,17 @@ function get-GitNotifications () {}
 function get-GitReleases () {}
 
 function get-GitDeployments () {}
+
+function get-gitfixesUI () {
+	param(
+		#Example: Mentaleak\PSGit
+		[string]$FullName
+	)
+	$gitissues = get-GitIssues $FullName
+	$getfixobj = [pscustomobject]@{}
+	foreach ($issue in $gitissues)
+	{
+		Add-Member -InputObject $getfixobj -MemberType NoteProperty -Name $issue.Name -Value $false
+	}
+	$fixes = Show-Psgui $getfixobj
+}
