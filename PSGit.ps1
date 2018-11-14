@@ -134,11 +134,28 @@ function Get-GitAuthHeader () {
 	return $headers
 }
 
+return $asdasd
 
 # connects to github for API
 function Connect-github () {
+	param(
+		[switch]$ManualCred = $false
+	)
 	set-WebSecurity
-	$tmpheader = Get-GitAuthHeader -cred (Get-Credential)
+	if ($ManualCred) {
+		$bcred = (Get-Credential -Title "Github" -Description "Enter GitHub Credentials")
+		if ($bcred) { Set-Credential -Credential $bcred -Target "GithubBasicAuth" -Description "GitHub Credentials" }
+		$cred = ((Find-Credential | Where-Object Target -Match "GithubBasicAuth")[0])
+	} else {
+		$cred = ((Find-Credential | Where-Object Target -Match "GithubBasicAuth")[0])
+		if (!($cred)) {
+			$bcred = (Get-Credential -Title "Github" -Description "Enter GitHub Credentials")
+			if ($bcred) { Set-Credential -Credential $bcred -Target "GithubBasicAuth" -Description "GitHub Credentials" }
+			$cred = ((Find-Credential | Where-Object Target -Match "GithubBasicAuth")[0])
+		}
+	}
+
+	$tmpheader = Get-GitAuthHeader -cred ($cred)
 	try { $userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers $tmpheader }
 	catch {
 		throw [System.UnauthorizedAccessException]"$((($_.ErrorDetails.Message) | ConvertFrom-Json).message)"
@@ -479,5 +496,5 @@ function get-gitfixesUI () {
 		Add-Member -InputObject $getfixobj -MemberType NoteProperty -Name $issue.Name -Value $false
 	}
 	$fixes = Show-Psgui $getfixobj
-    return $fixes
+	return $fixes
 }
