@@ -479,4 +479,5 @@ function get-gitfixesUI () {
 		Add-Member -InputObject $getfixobj -MemberType NoteProperty -Name $issue.Name -Value $false
 	}
 	$fixes = Show-Psgui $getfixobj
+    return $fixes
 }
