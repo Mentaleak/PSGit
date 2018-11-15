@@ -210,8 +210,9 @@ function Add-GitAutoCommitPush () {
 				#Write-Host "getuserdata"
 				$gituser = get-gituserdata
 				git config --global user.name "$($gituser.UserData.login)"
-				git config --global user.email "$($gituser.UserEmail.email)"
-
+				if ($gituser.UserEmail) {
+					git config --global user.email "$($gituser.UserEmail.email)"
+				}
 				#Write-Host "Get Diff"
 				$gitStatus = (git status).split("`n")
 				git add -N *
@@ -378,7 +379,10 @@ function remove-gitRepo () {
 #gets data of user 
 function get-gituserdata () {
 	$userdata = Invoke-RestMethod -Uri "https://api.github.com/user" -Headers (Test-GitAuth)
-	$useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers (Test-GitAuth)
+	$emailheader = @{ Scope = 'user:email' }
+	$emailheader += (Test-GitAuth)
+	try { $useremail = Invoke-RestMethod -Uri "https://api.github.com/user/emails" -Headers $emailheader }
+	catch { $useremail = $null }
 	$user = New-Object PSObject -Property @{
 		UserData = $userdata
 		UserEmail = $useremail
