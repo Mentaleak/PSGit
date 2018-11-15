@@ -134,7 +134,6 @@ function Get-GitAuthHeader () {
 	return $headers
 }
 
-return $asdasd
 
 # connects to github for API
 function Connect-github () {
@@ -489,12 +488,14 @@ function get-gitfixesUI () {
 		#Example: Mentaleak\PSGit
 		[string]$FullName
 	)
-	$gitissues = get-GitIssues $FullName
+	$gitissues = get-GitIssues $FullName | Sort-Object { [int]$_.number }
 	$getfixobj = [pscustomobject]@{}
 	foreach ($issue in $gitissues)
 	{
-		Add-Member -InputObject $getfixobj -MemberType NoteProperty -Name $issue.Name -Value $false
+		Add-Member -InputObject $getfixobj -MemberType NoteProperty -Name "$($issue.title) `#$($issue.number)" -Value $false
 	}
-	$fixes = Show-Psgui $getfixobj
+	$fixedList = Show-Psgui $getfixobj
+	$fixes = ((Get-PSObjectParamTypes $fixedlist) | Where-Object { $_.Definition -match "TRUE" }).Name | ForEach-Object { $_.split("`#")[1] }
 	return $fixes
 }
+
