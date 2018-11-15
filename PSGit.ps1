@@ -420,7 +420,7 @@ function initialize-GitPull () {
 function get-GitIssues () {
 	param(
 		#Example: Mentaleak\PSGit
-		[string]$FullName
+		[Parameter(mandatory = $true)] [string]$FullName
 	)
 	$RepoIssues = Invoke-RestMethod -Uri "https://api.github.com/repos/$($FullName)/issues" -Headers (Test-GitAuth)
 	return $RepoIssues
@@ -490,7 +490,7 @@ function get-GitDeployments () {}
 function get-gitfixesUI () {
 	param(
 		#Example: Mentaleak\PSGit
-		[string]$FullName
+		[Parameter(mandatory = $true)] [string]$FullName
 	)
 	$gitissues = get-GitIssues $FullName | Sort-Object { [int]$_.number }
 	$getfixobj = [pscustomobject]@{}
@@ -499,7 +499,9 @@ function get-gitfixesUI () {
 		Add-Member -InputObject $getfixobj -MemberType NoteProperty -Name "$($issue.title) `#$($issue.number)" -Value $false
 	}
 	$fixedList = Show-Psgui $getfixobj
-	$fixes = ((Get-PSObjectParamTypes $fixedlist) | Where-Object { $_.Definition -match "TRUE" }).Name | ForEach-Object { $_.split("`#")[1] }
+	if ($fixedList) {
+		$fixes = ((Get-PSObjectParamTypes $fixedlist) | Where-Object { $_.Definition -match "TRUE" }).Name | ForEach-Object { $_.split("`#")[1] }
+	}
 	return $fixes
 }
 
